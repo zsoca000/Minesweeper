@@ -1,0 +1,32 @@
+# Build kimenetek
+build/
+out/
+bin/
+obj/
+Debug/
+Release/
+
+# IDE / szerkeszto fajlok
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.cbp
+*.depend
+*.layout
+*.sln
+*.vcxproj*
+
+# Binarisok es koztes fajlok
+*.exe
+*.o
+*.obj
+*.pdb
+*.ilk
+*.dll
+*.a
+*.lib
+
+# Csomagolt release
+*.zip

@@ -1,0 +1,64 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows
+          - os: ubuntu-latest
+            name: linux
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux fuggosegek
+        if: matrix.name == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev libfreetype-dev
+
+      # Windowson a MinGW gcc-t hasznaljuk (ugyanaz, mint az eredeti Code::Blocks projekt)
+      - name: Konfiguralas
+        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Forditas
+        run: cmake --build build --config Release
+
+      - name: Csomagolas
+        run: cmake --install build --config Release --component game --prefix package/Minesweeper
+
+      - name: Zip (windows)
+        if: matrix.name == 'windows'
+        run: Compress-Archive -Path package/Minesweeper -DestinationPath Minesweeper-windows.zip
+
+      - name: Zip (linux)
+        if: matrix.name == 'linux'
+        run: cd package && zip -r ../Minesweeper-linux.zip Minesweeper
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Minesweeper-${{ matrix.name }}
+          path: Minesweeper-${{ matrix.name }}.zip
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: Minesweeper-*.zip
